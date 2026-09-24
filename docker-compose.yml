@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    restart: always
+    environment:
+      - MONGODB_URI=mongodb://db:27017/veralabel
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:80}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - STORAGE_PROVIDER=local
+      - AUTH_BYPASS=false
+      - ADMIN_EMAIL=${ADMIN_EMAIL}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+    depends_on:
+      - db
+    networks:
+      - veralabel-network
+
+  seed:
+    build: .
+    restart: "no"
+    command: node scripts/seed-admin.js
+    environment:
+      - MONGODB_URI=mongodb://db:27017/veralabel
+      - ADMIN_EMAIL=${ADMIN_EMAIL}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+    depends_on:
+      - db
+    networks:
+      - veralabel-network
+
+  db:
+    # ISSUE 15 FIX: Pinned to a specific minor version for research reproducibility
+    image: mongo:6.0.21
+    restart: always
+    volumes:
+      - veralabel_data:/data/db
+    networks:
+      - veralabel-network
+
+  proxy:
+    image: nginx:1.27-alpine
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ${DATA_FOLDER_PATH:-./data/images}:/usr/share/nginx/images:ro
+    depends_on:
+      - web
+    networks:
+      - veralabel-network
+
+volumes:
+  veralabel_data:
+
+networks:
+  veralabel-network:
