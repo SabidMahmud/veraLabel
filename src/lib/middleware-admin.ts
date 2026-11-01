@@ -1,23 +1,12 @@
-import { auth } from '@/lib/auth';
+import { getAuthenticatedUser } from '@/lib/api-auth';
 
 /**
  * Verifies that the current user is authenticated and has admin role
  * @returns User session if admin, null otherwise
  */
 export async function verifyAdmin() {
-    const session = await auth();
-
-    if (!session || !session.user) {
-        return null;
-    }
-
-    const userRole = (session.user as { role?: string }).role;
-
-    if (userRole !== 'admin') {
-        return null;
-    }
-
-    return session;
+    const user = await getAuthenticatedUser();
+    return user?.role === 'admin' ? user : null;
 }
 
 /**

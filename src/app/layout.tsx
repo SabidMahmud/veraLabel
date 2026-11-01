@@ -3,8 +3,8 @@ import type { Metadata } from 'next';
 import Providers from '@/components/Providers';
 
 export const metadata: Metadata = {
-  title: 'Pathology Slide Viewer',
-  description: 'Cervical Cytology Diagnosis System',
+  title: 'VeraLabel',
+  description: 'Research image annotation workspace',
 };
 
 export default function RootLayout({

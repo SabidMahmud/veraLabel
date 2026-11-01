@@ -31,8 +31,10 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # env files
-# .env is committed intentionally — private repo, two people only.
-# Keep .env.local and .env.production out of git.
+# Deployment credentials must never be committed.
+.env
+.env.*
+!.env.example
 .env.local
 .env.production
 .env.development.local
@@ -49,7 +51,10 @@ next-env.d.ts
 public/derived-slides
 logs/
 
-scripts/
+data/
+backups/
+deploy/kubernetes/secrets.env
+deploy/kubernetes/local/
 
 # Private dataset-curation manifests stay server-side and are never committed.
 /data/dataset-curation/

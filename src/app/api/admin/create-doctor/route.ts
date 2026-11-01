@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
-import { auth } from '@/lib/auth';
+import { verifyAdmin } from '@/lib/middleware-admin';
 
 const VALID_ROLES = ['admin', 'researcher', 'annotator', 'reviewer'] as const;
 
@@ -12,8 +12,8 @@ const VALID_ROLES = ['admin', 'researcher', 'annotator', 'reviewer'] as const;
 export async function POST(request: NextRequest) {
     try {
         // Require a valid admin session
-        const session = await auth();
-        if (!session || (session.user as any)?.role !== 'admin') {
+        const session = await verifyAdmin();
+        if (!session) {
             return NextResponse.json({ error: 'Admin access required.' }, { status: 403 });
         }
 

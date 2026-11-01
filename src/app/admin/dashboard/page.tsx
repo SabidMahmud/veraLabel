@@ -13,14 +13,14 @@ interface Doctor {
   specialization?: string;
   licenseNumber?: string;
   isActive: boolean;
-  diagnosisCount: number;
+  annotationCount: number;
   createdAt: string;
 }
 
 interface Stats {
-  totalDoctors: number;
-  totalDiagnoses: number;
-  diagnosisByType: Record<string, number>;
+  totalAnnotators: number;
+  totalAnnotations: number;
+  annotationByLabel: Record<string, number>;
   recentActivity: number;
 }
 
@@ -208,11 +208,11 @@ export default function AdminDashboard() {
             </div>
             <div className="flex items-center gap-4">
               <Link
-                href="/admin/cross-validation"
+                href="/admin/projects/new"
                 className="flex items-center gap-2 rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700 transition"
               >
                 <ShieldCheck className="h-4 w-4" />
-                <span className="hidden sm:inline">Cross-Validation</span>
+                <span className="hidden sm:inline">Create Project</span>
               </Link>
               <Link
                 href="/viewer"
@@ -235,13 +235,18 @@ export default function AdminDashboard() {
       </header>
 
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-8 rounded-lg border border-blue-200 bg-blue-50 p-5">
+          <h2 className="text-lg font-semibold text-slate-900">Connect your first dataset</h2>
+          <p className="mt-2 text-slate-700">Create a project, add images to storage, register them, then create annotator accounts.</p>
+          <Link href="/admin/setup" className="mt-3 inline-block font-medium text-blue-700 underline">Open the setup guide</Link>
+        </div>
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-slate-500">Active Doctors</p>
-                <p className="text-3xl font-bold text-slate-900 mt-2">{stats?.totalDoctors || 0}</p>
+                <p className="text-3xl font-bold text-slate-900 mt-2">{stats?.totalAnnotators || 0}</p>
               </div>
               <Users className="h-10 w-10 text-indigo-500" />
             </div>
@@ -251,7 +256,7 @@ export default function AdminDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-slate-500">Total Diagnoses</p>
-                <p className="text-3xl font-bold text-slate-900 mt-2">{stats?.totalDiagnoses || 0}</p>
+                <p className="text-3xl font-bold text-slate-900 mt-2">{stats?.totalAnnotations || 0}</p>
               </div>
               <FileText className="h-10 w-10 text-teal-500" />
             </div>
@@ -271,8 +276,8 @@ export default function AdminDashboard() {
             <div className="flex flex-col h-full">
               <p className="text-sm font-medium text-slate-500 mb-3">Diagnosis Distribution</p>
               <div className="flex-1 overflow-y-auto space-y-2 pr-2">
-                {stats?.diagnosisByType && Object.keys(stats.diagnosisByType).length > 0 ? (
-                  Object.entries(stats.diagnosisByType).map(([type, count]) => (
+                {stats?.annotationByLabel && Object.keys(stats.annotationByLabel).length > 0 ? (
+                  Object.entries(stats.annotationByLabel).map(([type, count]) => (
                     <div key={type} className="flex items-center justify-between text-sm">
                       <span className="text-slate-600 font-medium">{type || 'Unspecified'}</span>
                       <span className="font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded-full text-xs">
@@ -328,7 +333,7 @@ export default function AdminDashboard() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">{doctor.name}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">{doctor.email}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">{doctor.specialization || '—'}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 font-semibold">{doctor.diagnosisCount}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 font-semibold">{doctor.annotationCount}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-emerald-100 text-emerald-800">
                         Active

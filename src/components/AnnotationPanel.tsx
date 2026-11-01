@@ -37,8 +37,8 @@ export default function AnnotationPanel({ projectId, imageId, userId, onAnnotati
                 if (!res.ok) throw new Error('Failed to load project configuration');
                 const data = await res.json();
                 setProject(data);
-            } catch (err: any) {
-                setError(err.message);
+            } catch (err: unknown) {
+                setError(err instanceof Error ? err.message : 'Unable to load or save annotation.');
             } finally {
                 setLoading(false);
             }
@@ -77,8 +77,8 @@ export default function AnnotationPanel({ projectId, imageId, userId, onAnnotati
             setSelectedLabel('');
             setNotes('');
             onAnnotationSaved();
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'Unable to load or save annotation.');
         } finally {
             setSubmitting(false);
         }

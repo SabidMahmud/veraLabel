@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
@@ -8,17 +8,13 @@ export interface AuthUser {
     name: string;
     email: string;
     role: 'admin' | 'researcher' | 'annotator' | 'reviewer';
-    specialization?: string;
-    licenseNumber?: string;
 }
 
 /**
  * Get authenticated user from session
  * This is a helper function to be used in API routes
  */
-export async function getAuthenticatedUser(
-    request: NextRequest
-): Promise<AuthUser | null> {
+export async function getAuthenticatedUser(): Promise<AuthUser | null> {
     try {
         // Try NextAuth session first
         const session = await auth();
@@ -31,25 +27,6 @@ export async function getAuthenticatedUser(
                     name: user.name,
                     email: user.email,
                     role: user.role,
-                    specialization: user.specialization,
-                    licenseNumber: user.licenseNumber,
-                };
-            }
-        }
-
-        // Fallback to custom header (for development/testing)
-        const userId = request.headers.get('x-user-id');
-        if (userId) {
-            await connectDB();
-            const user = await User.findById(userId);
-            if (user && user.isActive) {
-                return {
-                    id: user._id.toString(),
-                    name: user.name,
-                    email: user.email,
-                    role: user.role,
-                    specialization: user.specialization,
-                    licenseNumber: user.licenseNumber,
                 };
             }
         }
@@ -65,10 +42,8 @@ export async function getAuthenticatedUser(
  * Middleware to require authentication
  * Returns 401 if user is not authenticated
  */
-export async function requireAuth(
-    request: NextRequest
-): Promise<AuthUser | NextResponse> {
-    const user = await getAuthenticatedUser(request);
+export async function requireAuth(): Promise<AuthUser | NextResponse> {
+    const user = await getAuthenticatedUser();
     if (!user) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -79,10 +54,8 @@ export async function requireAuth(
  * Middleware to require admin role
  * Returns 401 if not authenticated, 403 if not admin
  */
-export async function requireAdmin(
-    request: NextRequest
-): Promise<AuthUser | NextResponse> {
-    const userOrResponse = await requireAuth(request);
+export async function requireAdmin(): Promise<AuthUser | NextResponse> {
+    const userOrResponse = await requireAuth();
     if (userOrResponse instanceof NextResponse) {
         return userOrResponse;
     }

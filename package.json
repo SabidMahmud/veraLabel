@@ -7,18 +7,20 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "seed": "node scripts/seed-admin.js"
+    "seed": "node scripts/seed-admin.js",
+    "typecheck": "tsc --noEmit --incremental false",
+    "import:images": "node scripts/import-images.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "lucide-react": "^0.545.0",
     "mongoose": "^8.9.5",
-    "next": "15.3.4",
+    "next": "15.5.28",
     "next-auth": "5.0.0-beta.29",
     "nodemailer": "^6.10.1",
-    "react": "19.1.0",
-    "react-dom": "19.1.0",
-    "sharp": "0.33.5",
+    "react": "19.1.10",
+    "react-dom": "19.1.10",
+    "sharp": "0.35.5",
     "swr": "^2.3.6",
     "tiff": "^7.1.2"
   },
@@ -31,7 +33,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "15.3.4",
+    "eslint-config-next": "15.5.28",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

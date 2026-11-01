@@ -1,0 +1,11 @@
+# Uses the cluster's default StorageClass. Set storageClassName if needed.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: veralabel-images
+  namespace: veralabel
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 20Gi

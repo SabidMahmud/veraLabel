@@ -3,6 +3,7 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import connectDB from "@/lib/mongodb";
 import User from "@/models/User";
+import { secureCookies, sessionCookieName } from '@/lib/auth-settings';
 
 export const authConfig = {
   trustHost: true,
@@ -15,28 +16,23 @@ export const authConfig = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          console.log('[Authorize Failed] Missing email or password credentials');
           return null;
         }
 
         try {
-          console.log('[Authorize] Connecting to DB...');
           await connectDB();
 
           const emailLower = (credentials.email as string).toLowerCase();
-          console.log('[Authorize] Looking up user by email:', emailLower);
 
           const user = await User.findOne({
             email: emailLower,
           }).select("+password");
 
           if (!user) {
-            console.log('[Authorize Failed] User not found in DB for email:', emailLower);
             return null;
           }
 
           if (!user.isActive) {
-            console.log('[Authorize Failed] User account is inactive:', emailLower);
             return null;
           }
 
@@ -45,11 +41,9 @@ export const authConfig = {
           );
 
           if (!isPasswordValid) {
-            console.log('[Authorize Failed] Invalid password for email:', emailLower);
             return null;
           }
 
-          console.log('[Authorize Success] Returning user:', { id: user._id.toString(), email: user.email, role: user.role });
 
           return {
             id: user._id.toString(),
@@ -67,10 +61,8 @@ export const authConfig = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        console.log('[JWT Callback] User object:', { id: user.id, email: user.email, role: (user as { role?: string }).role });
         token.id = user.id;
         token.role = (user as { id: string; role: string }).role;
-        console.log('[JWT Callback] Token after update:', { id: token.id, role: token.role });
       }
       return token;
     },
@@ -90,15 +82,16 @@ export const authConfig = {
   },
   cookies: {
     sessionToken: {
-      name: process.env.NODE_ENV === 'production' ? '__Secure-authjs.session-token' : 'authjs.session-token',
+      name: sessionCookieName,
       options: {
         httpOnly: true,
         sameSite: 'lax',
         path: '/',
-        secure: process.env.NODE_ENV === 'production',
+        secure: secureCookies,
       },
     },
   },
+  useSecureCookies: secureCookies,
   secret: process.env.NEXTAUTH_SECRET,
 } satisfies NextAuthConfig;
 

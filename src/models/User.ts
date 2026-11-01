@@ -8,6 +8,8 @@ export interface IUser extends Document {
     password: string;
     role: 'admin' | 'researcher' | 'annotator' | 'reviewer';
     isActive: boolean;
+    resetPasswordOTP?: string;
+    resetPasswordExpires?: Date;
     createdAt: Date;
     updatedAt: Date;
     comparePassword(candidatePassword: string): Promise<boolean>;
@@ -24,6 +26,8 @@ const UserSchema = new Schema<IUser>(
             default: 'annotator' 
         },
         isActive: { type: Boolean, default: true },
+        resetPasswordOTP: { type: String, select: false },
+        resetPasswordExpires: { type: Date, select: false },
     },
     { timestamps: true }
 );

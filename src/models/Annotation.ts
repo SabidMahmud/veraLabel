@@ -6,7 +6,7 @@ export interface IAnnotation extends Document {
     imageId: string; // ID mapping to the NAS/S3 storage file
     userId: mongoose.Types.ObjectId; // The annotator or reviewer
     label: string; // The selected label from the Project's taxonomy
-    roiData?: any; // JSON representation of bounding boxes, polygons, etc.
+    roiData?: unknown; // JSON representation of bounding boxes, polygons, etc.
     notes?: string;
     isConsensus: boolean; // True if this is the final, resolved ground truth
     createdAt: Date;

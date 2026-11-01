@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import { User, Annotation } from '@/models';
-import { auth } from '@/lib/auth';
+import { verifyAdmin } from '@/lib/middleware-admin';
 
 export async function GET(_request: NextRequest) {
     try {
         // Verify admin session
-        const session = await auth();
-        if (!session || (session.user as any)?.role !== 'admin') {
+        const session = await verifyAdmin();
+        if (!session) {
             return NextResponse.json({ error: 'Admin access required.' }, { status: 403 });
         }
 
@@ -56,7 +56,7 @@ export async function GET(_request: NextRequest) {
             totalAnnotators,
             totalAnnotations,
             recentActivity:       recentAnnotations,
-            annotationByLabel:    annotationByLabel.reduce((acc: any, item: any) => {
+            annotationByLabel:    annotationByLabel.reduce((acc: Record<string, number>, item: { _id: string; count: number }) => {
                 acc[item._id || 'Unlabeled'] = item.count;
                 return acc;
             }, {}),

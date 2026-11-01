@@ -2,15 +2,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 import connectDB from '@/lib/mongodb';
 import { Image, Annotation } from '@/models';
+import { requireAuth } from '@/lib/api-auth';
 
 export async function GET(req: NextRequest) {
     try {
+        const user = await requireAuth();
+        if (user instanceof NextResponse) return user;
         // BUG 2 FIX: Use shared connectDB() utility (singleton connection pool)
         await connectDB();
 
         const { searchParams } = new URL(req.url);
         const projectId = searchParams.get('projectId');
-        const userId = searchParams.get('userId');
+        const userId = user.id;
 
         if (!projectId || !userId) {
             return NextResponse.json({ error: 'Missing projectId or userId' }, { status: 400 });
@@ -48,7 +51,7 @@ export async function GET(req: NextRequest) {
         }
 
         return NextResponse.json(nextImage, { status: 200 });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('[Queue API Error]', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }

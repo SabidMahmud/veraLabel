@@ -27,8 +27,8 @@ export default function NewProjectPage() {
         setLabels(newLabels);
     };
 
-    const handleLabelChange = (index: number, field: string, value: string) => {
-        const newLabels = [...labels] as any;
+    const handleLabelChange = (index: number, field: "name" | "color" | "description", value: string) => {
+        const newLabels = [...labels];
         newLabels[index][field] = value;
         setLabels(newLabels);
     };
@@ -81,8 +81,8 @@ export default function NewProjectPage() {
 
             // Success! Redirect to the admin projects list (or viewer)
             router.push('/admin/dashboard'); 
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'Unable to create project.');
         } finally {
             setIsSubmitting(false);
         }

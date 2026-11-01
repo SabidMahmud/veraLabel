@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  output: 'standalone',
   images: {
     remotePatterns: [
       {
@@ -9,15 +10,6 @@ const nextConfig: NextConfig = {
         pathname: '/uc/**',
       },
     ],
-  },
-  typescript: {
-    // Skip type checking during build to reduce memory usage
-    ignoreBuildErrors: true,
-  },
-  eslint: {
-    // Warning: This allows production builds to successfully complete even if
-    // your project has ESLint errors.
-    ignoreDuringBuilds: true,
   },
   async rewrites() {
     return [

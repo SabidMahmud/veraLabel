@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: veralabel
+  namespace: veralabel
+  # If cert-manager is installed, uncomment and use your ClusterIssuer name.
+  # annotations:
+  #   cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  # Use your actual IngressClass, e.g. traefik on a default K3s installation.
+  ingressClassName: traefik
+  tls:
+    - hosts: [annotate.example.com]
+      secretName: veralabel-tls
+  rules:
+    - host: annotate.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: veralabel
+                port:
+                  number: 8080

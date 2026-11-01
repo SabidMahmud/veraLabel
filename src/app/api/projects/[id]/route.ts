@@ -2,9 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 import connectDB from '@/lib/mongodb';
 import { Project } from '@/models';
+import { requireAuth } from '@/lib/api-auth';
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
+        const user = await requireAuth();
+        if (user instanceof NextResponse) return user;
         // BUG 2 FIX: Use shared connectDB() utility
         await connectDB();
 
@@ -23,7 +26,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
         }
 
         return NextResponse.json(project, { status: 200 });
-    } catch (error: any) {
+    } catch (error: unknown) {
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }

@@ -2,14 +2,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 import connectDB from '@/lib/mongodb';
 import { Annotation, Project, Image } from '@/models';
+import { requireAuth, requireAdmin } from '@/lib/api-auth';
 
 export async function POST(req: NextRequest) {
     try {
+        const user = await requireAuth();
+        if (user instanceof NextResponse) return user;
         // BUG 2 FIX: Use shared connectDB() utility
         await connectDB();
 
         const body = await req.json();
-        const { projectId, imageId, userId, label } = body;
+        const { projectId, imageId, label } = body;
+        const userId = user.id;
 
         // --- Strict Validation ---
         if (!projectId || !imageId || !userId || !label) {
@@ -35,10 +39,13 @@ export async function POST(req: NextRequest) {
         const project = await Project.findById(projectOid);
         if (!project) return NextResponse.json({ error: 'Project not found.' }, { status: 404 });
 
-        const validLabel = project.labels.find((l: any) => l.name === label);
+        const validLabel = project.labels.find((l) => l.name === label);
         if (!validLabel) {
             return NextResponse.json({ error: `Invalid label "${label}" for this project.` }, { status: 400 });
         }
+
+        const targetImage = await Image.findOne({ _id: imageOid, projectId: projectOid });
+        if (!targetImage) return NextResponse.json({ error: 'Image not found in project.' }, { status: 404 });
 
         // 2. Upsert annotation (allows changing label if annotator reconsiders)
         const annotation = await Annotation.findOneAndUpdate(
@@ -67,8 +74,8 @@ export async function POST(req: NextRequest) {
         }
 
         return NextResponse.json(annotation, { status: 201 });
-    } catch (error: any) {
-        if (error.code === 11000) {
+    } catch (error: unknown) {
+        if (error && typeof error === 'object' && 'code' in error && error.code === 11000) {
             return NextResponse.json({ error: 'Duplicate annotation conflict.' }, { status: 409 });
         }
         console.error('[Annotations POST Error]', error);
@@ -78,6 +85,8 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
     try {
+        const user = await requireAdmin();
+        if (user instanceof NextResponse) return user;
         // BUG 2 FIX: Use shared connectDB() utility
         await connectDB();
 
@@ -85,7 +94,7 @@ export async function GET(req: NextRequest) {
         const projectId = searchParams.get('projectId');
         const imageId   = searchParams.get('imageId');
 
-        const query: any = {};
+        const query: Record<string, unknown> = {};
 
         if (projectId) {
             if (!mongoose.Types.ObjectId.isValid(projectId)) {
@@ -102,7 +111,7 @@ export async function GET(req: NextRequest) {
 
         const annotations = await Annotation.find(query).populate('userId', 'name role');
         return NextResponse.json(annotations, { status: 200 });
-    } catch (error: any) {
+    } catch (error: unknown) {
         return NextResponse.json({ error: 'Internal Server Error fetching annotations.' }, { status: 500 });
     }
 }

@@ -1,0 +1,43 @@
+# Temporary pod for copying files and importing them. Delete after use.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: veralabel-dataset-tools
+  namespace: veralabel
+spec:
+  restartPolicy: Never
+  automountServiceAccountToken: false
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1001
+    fsGroup: 1001
+  # Match the application node because the default image PVC is ReadWriteOnce.
+  affinity:
+    podAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchLabels:
+              app: veralabel
+          topologyKey: kubernetes.io/hostname
+  # imagePullSecrets:
+  #   - name: registry-credentials
+  containers:
+    - name: tools
+      image: veralabel:local
+      command: [node, -e, 'setInterval(() => {}, 60000)']
+      envFrom:
+        - secretRef:
+            name: veralabel-secrets
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities: {drop: [ALL]}
+      resources:
+        requests: {cpu: 25m, memory: 64Mi}
+        limits: {cpu: 500m, memory: 256Mi}
+      volumeMounts:
+        - name: images
+          mountPath: /data/images
+  volumes:
+    - name: images
+      persistentVolumeClaim:
+        claimName: veralabel-images

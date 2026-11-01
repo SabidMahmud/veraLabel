@@ -1,10 +1,12 @@
 import nodemailer from 'nodemailer';
+import { randomInt } from 'node:crypto';
 
 export const generateOTP = (): string => {
-    return Math.floor(100000 + Math.random() * 900000).toString();
+    return randomInt(100000, 1000000).toString();
 };
 
 export const sendEmail = async ({ to, subject, html }: { to: string, subject: string, html: string }) => {
+    if (!process.env.SMTP_HOST) throw new Error('SMTP_HOST is not configured.');
     // Standard nodemailer transport (configure via .env in production)
     const transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST || 'localhost',

@@ -1,11 +1,12 @@
 'use client';
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import AnnotationPanel from '@/components/AnnotationPanel';
 import ImageViewer from '@/components/ImageViewer';
 import { ViewableSlide } from '@/types/types';
+import ProjectsPage from '@/app/projects/page';
 
 function ViewerContent() {
     const searchParams    = useSearchParams();
@@ -13,12 +14,12 @@ function ViewerContent() {
     const { data: session, status } = useSession();
     const router          = useRouter();
 
-    const [currentImage, setCurrentImage] = useState<any>(null);
+    const [currentImage, setCurrentImage] = useState<{ _id: string; path: string } | null>(null);
     const [loading, setLoading]           = useState(true);
     const [error, setError]               = useState('');
 
     // ISSUE 6 FIX: Read userId from the secure NextAuth session, not from URL params
-    const userId = (session?.user as any)?.id as string | undefined;
+    const userId = (session?.user as { id?: string })?.id as string | undefined;
 
     // Redirect to login if unauthenticated
     useEffect(() => {
@@ -27,7 +28,7 @@ function ViewerContent() {
         }
     }, [status, router]);
 
-    const fetchNextImage = async () => {
+    const fetchNextImage = useCallback(async () => {
         if (!projectId || !userId) return;
 
         setLoading(true);
@@ -44,19 +45,19 @@ function ViewerContent() {
 
             const data = await res.json();
             setCurrentImage(data);
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'Unable to load images.');
         } finally {
             setLoading(false);
         }
-    };
+    }, [projectId, userId]);
 
     useEffect(() => {
         // Only fetch once session is ready and projectId is present
         if (status === 'authenticated' && projectId && userId) {
             fetchNextImage();
         }
-    }, [status, projectId, userId]);
+    }, [status, projectId, userId, fetchNextImage]);
 
     if (status === 'loading') {
         return (
@@ -69,16 +70,7 @@ function ViewerContent() {
         );
     }
 
-    if (!projectId) {
-        return (
-            <div className="flex items-center justify-center h-screen bg-gray-100">
-                <div className="p-8 text-center bg-white rounded-lg shadow-md border-l-4 border-red-500">
-                    <h2 className="text-xl font-bold text-gray-800 mb-2">Missing Project ID</h2>
-                    <p className="text-gray-600">Please provide a <code className="bg-gray-100 px-1 rounded">projectId</code> in the URL (e.g., <code className="bg-gray-100 px-1 rounded">?projectId=xyz</code>)</p>
-                </div>
-            </div>
-        );
-    }
+    if (!projectId) return <ProjectsPage />;
 
     // BUG 1 FIX: Build a proper ViewableSlide object for ImageViewer, not a raw string
     const currentSlide: ViewableSlide | null = currentImage
@@ -103,6 +95,8 @@ function ViewerContent() {
                     <div className="text-white text-xl bg-gray-800 border border-gray-700 p-8 rounded-xl shadow-2xl flex flex-col items-center gap-4">
                         <span className="text-4xl">🎉</span>
                         <p className="text-center">{error}</p>
+                        {(session?.user as { role?: string })?.role === 'admin' && <a href="/admin/setup" className="text-sm text-blue-300 underline">New project? Follow the setup guide to import images.</a>}
+                        <a href="/projects" className="text-sm text-blue-300 underline">Back to projects</a>
                     </div>
                 )}
 
